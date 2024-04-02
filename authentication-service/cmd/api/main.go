@@ -8,6 +8,10 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 const WEB_PORT = "81"
@@ -23,11 +27,18 @@ func main() {
 
 	log.Println("starting authentication service on port : 81")
 
-	//TODO connect to DB
+	conn := ConnectToDB()
+
+	if conn == nil {
+		log.Panic("cant connect to postGress")
+	}
 
 	//set up config
 
-	app := Config{}
+	app := Config{
+		DB:     conn,
+		Models: data.New(conn),
+	}
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", WEB_PORT),
